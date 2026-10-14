@@ -163,7 +163,7 @@ STATIC_URL = '/static/'
 
 MEDIA_ENDPOINT = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-FILE_UPLOAD_PERMISSIONS = 0o640
+FILE_UPLOAD_PERMISSIONS = 0o644
 
 # Durante o desenvolvimento o frontend precisa acessar
 # diretamente o servidor Django.
