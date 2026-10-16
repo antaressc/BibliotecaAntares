@@ -31,10 +31,10 @@ class Livro(models.Model):
     autores = models.ManyToManyField(Autor, related_name='livros', blank=True)
 
     class Formato(models.TextChoices):
-        LIVRO = 'livro', 'Livro'
-        REVISTA = 'revista', 'Revista'
-        APOSTILA = 'apostila', 'Apostila'
-        MANUAL = 'manual', 'Manual'
+        LIVRO = 'Livro', 'livro'
+        REVISTA = 'Revista', 'revista'
+        APOSTILA = 'Apostila', 'apostila'
+        MANUAL = 'Manual', 'manual'
         NORMA_TECNICA = 'norma_tecnica', 'Norma técnica'
 
     formato = models.CharField(
