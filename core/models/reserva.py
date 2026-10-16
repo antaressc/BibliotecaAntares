@@ -1,12 +1,12 @@
-from django.db import models, transaction
 
+from django.db import models, transaction
 from .livro import Livro
 from .user import User
-
 
 class Reserva(models.Model):
 
     class StatusReserva(models.IntegerChoices):
+
         RESERVADO = 1, 'Reservado'
         RETIRADO = 2, 'Retirado'
         DEVOLVIDO = 3, 'Devolvido'
@@ -23,70 +23,26 @@ class Reserva(models.Model):
         default=StatusReserva.RESERVADO
     )
 
-    data_criacao = models.DateTimeField(
-        auto_now_add=True
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    data_retirada = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Data de retirada'
     )
 
-    data_atualizacao = models.DateTimeField(
-        auto_now=True
+    data_devolucao_prevista = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Data prevista de devolução'
     )
 
-    def save(self, *args, **kwargs):
+    data_devolucao = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Data de devolução'
+    )
 
-        status_anterior = None
-
-        if self.pk:
-            status_anterior = (
-                Reserva.objects
-                .filter(pk=self.pk)
-                .values_list('status', flat=True)
-                .first()
-            )
-
-        super().save(*args, **kwargs)
-
-        # DEVOLVIDO ou CANCELADO
-        if (
-            self.status in [
-                self.StatusReserva.DEVOLVIDO,
-                self.StatusReserva.CANCELADO
-            ]
-            and status_anterior not in [
-                self.StatusReserva.DEVOLVIDO,
-                self.StatusReserva.CANCELADO
-            ]
-        ):
-            for item in self.itens.all():
-
-                livro = item.livro
-
-                livro.quantidade += 1
-                livro.status = Livro.Status.DISPONIVEL
-
-                livro.save(
-                    update_fields=[
-                        'quantidade',
-                        'status'
-                    ]
-                )
-
-        # RESERVADO ou RETIRADO
-        elif self.status in [
-            self.StatusReserva.RESERVADO,
-            self.StatusReserva.RETIRADO
-        ]:
-            for item in self.itens.all():
-
-                livro = item.livro
-
-                if livro.quantidade == 0:
-                    livro.status = Livro.Status.RESERVADO
-                else:
-                    livro.status = Livro.Status.DISPONIVEL
-
-                livro.save(
-                    update_fields=['status']
-                )
 
 
 class ItensReserva(models.Model):
@@ -105,9 +61,7 @@ class ItensReserva(models.Model):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-
         if self.pk is None:
-
             if self.reserva.status in [
                 Reserva.StatusReserva.DEVOLVIDO,
                 Reserva.StatusReserva.CANCELADO
@@ -128,13 +82,20 @@ class ItensReserva(models.Model):
                 )
 
             livro.quantidade -= 1
-            livro.save(update_fields=['quantidade'])
+
+            if livro.quantidade == 0:
+                livro.status = Livro.Status.RESERVADO
+            else:
+                livro.status = Livro.Status.DISPONIVEL
+
+            livro.save(
+                update_fields=['quantidade', 'status']
+            )
 
         super().save(*args, **kwargs)
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
-
         if self.reserva.status not in [
             Reserva.StatusReserva.DEVOLVIDO,
             Reserva.StatusReserva.CANCELADO
@@ -144,6 +105,10 @@ class ItensReserva(models.Model):
             )
 
             livro.quantidade += 1
-            livro.save(update_fields=['quantidade'])
+            livro.status = Livro.Status.DISPONIVEL
+
+            livro.save(
+                update_fields=['quantidade', 'status']
+            )
 
         return super().delete(*args, **kwargs)

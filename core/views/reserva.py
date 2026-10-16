@@ -14,7 +14,8 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
-
+from datetime import timedelta
+from django.utils import timezone
 
 class ReservaViewSet(ModelViewSet):
     queryset = Reserva.objects.all()
@@ -77,9 +78,7 @@ class ReservaViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not self.is_admin():
             return Response(
-                {
-                    "detail": "Você não tem permissão para alterar reservas."
-                },
+                {"detail": "Você não tem permissão para alterar reservas."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -88,9 +87,7 @@ class ReservaViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if not self.is_admin():
             return Response(
-                {
-                    "detail": "Você não tem permissão para excluir reservas."
-                },
+                {"detail": "Você não tem permissão para excluir reservas."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -109,9 +106,7 @@ class ReservaViewSet(ModelViewSet):
     def relatorio_reservas_mes(self, request):
         if not self.is_admin():
             return Response(
-                {
-                    "detail": "Você não tem permissão para acessar este relatório."
-                },
+                {"detail": "Você não tem permissão para acessar este relatório."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -125,9 +120,7 @@ class ReservaViewSet(ModelViewSet):
             microsecond=0,
         )
 
-        reservas = Reserva.objects.filter(
-            data_criacao__gte=inicio_mes
-        )
+        reservas = Reserva.objects.filter(data_criacao__gte=inicio_mes)
 
         quantidade_reservas = reservas.count()
 
@@ -141,12 +134,8 @@ class ReservaViewSet(ModelViewSet):
 
     @extend_schema(
         request=None,
-        responses={
-            200: None,
-            400: None,
-            403: None,
-        },
-        description="Finaliza a reserva e marca os livros como reservados.",
+        responses={200: None, 400: None, 403: None},
+        description="Confirma uma reserva já criada.",
         summary="Finalizar reserva",
     )
     @action(detail=True, methods=["post"])
@@ -155,45 +144,32 @@ class ReservaViewSet(ModelViewSet):
         if not self.is_admin():
             return Response(
                 {
-                    "detail": "Você não tem permissão para finalizar reservas."
+                    "detail": (
+                        "Você não tem permissão para finalizar reservas."
+                    )
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         reserva = self.get_object()
 
-        if reserva.status == Reserva.StatusReserva.RESERVADO:
+        if reserva.status != Reserva.StatusReserva.RESERVADO:
             return Response(
                 {
-                    "status": "Reserva já finalizada"
+                    "detail": (
+                        "Apenas reservas com status Reservado "
+                        "podem ser finalizadas."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        for item in reserva.itens.all():
-            livro = item.livro
-
-            if livro.status != livro.Status.DISPONIVEL:
-                return Response(
-                    {
-                        "status": "Livro não disponível",
-                        "livro": livro.titulo,
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            livro.status = livro.Status.RESERVADO
-
-            livro.save(
-                update_fields=["status"]
-            )
-
-        reserva.status = Reserva.StatusReserva.RESERVADO
-        reserva.save()
-
         return Response(
             {
-                "status": "Reserva finalizada"
+                "status": (
+                    "A reserva já está reservada e o estoque "
+                    "já foi descontado."
+                )
             },
             status=status.HTTP_200_OK,
         )
@@ -205,118 +181,156 @@ class ReservaViewSet(ModelViewSet):
             400: None,
             403: None,
         },
-        description="Devolve os livros da reserva e aumenta a quantidade disponível.",
-        summary="Devolver reserva",
+        description="Registra a retirada de uma reserva.",
+        summary="Registrar retirada",
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def retirar(self, request, pk=None):
+        if not request.user.is_superuser:
+            return Response(
+                {
+                    "detail": (
+                        "Somente superusuários podem registrar retiradas."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        reserva = self.get_object()
+
+        if reserva.status != Reserva.StatusReserva.RESERVADO:
+            return Response(
+                {
+                    "detail": (
+                        "A retirada só pode ser registrada para reservas "
+                        "com status Reservado."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        agora = timezone.now()
+
+        reserva.status = Reserva.StatusReserva.RETIRADO
+        reserva.data_retirada = agora
+        reserva.data_devolucao_prevista = agora + timedelta(days=30)
+
+        reserva.save(
+            update_fields=[
+                "status",
+                "data_retirada",
+                "data_devolucao_prevista",
+            ]
+        )
+
+        return Response(
+            {"status": "Retirada registrada com sucesso."},
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        request=None,
+        responses={
+            200: None,
+            400: None,
+            403: None,
+        },
+        description="Registra a devolução de uma reserva retirada.",
+        summary="Registrar devolução",
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def devolver(self, request, pk=None):
-        if not self.is_admin():
+        if not request.user.is_superuser:
             return Response(
-                {
-                    "detail": "Você não tem permissão para devolver reservas."
-                },
+                {"detail": "Somente superusuários podem registrar devoluções."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         reserva = self.get_object()
 
-        if reserva.status == Reserva.StatusReserva.DEVOLVIDO:
+        if reserva.status != Reserva.StatusReserva.RETIRADO:
             return Response(
                 {
-                    "status": "A reserva já foi devolvida."
+                    "detail": (
+                        "A devolução só pode ser registrada para reservas "
+                        "com status Retirado."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if reserva.status not in [
-            Reserva.StatusReserva.RESERVADO,
-            Reserva.StatusReserva.RETIRADO,
-        ]:
-            return Response(
-                {
-                    "status": "A reserva não pode ser devolvida."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        for item in reserva.itens.all():
+        for item in reserva.itens.select_related("livro").all():
             livro = item.livro
-
             livro.quantidade += 1
             livro.status = livro.Status.DISPONIVEL
 
-            livro.save(
-                update_fields=[
-                    "quantidade",
-                    "status",
-                ]
-            )
+            livro.save(update_fields=["quantidade", "status"])
 
         reserva.status = Reserva.StatusReserva.DEVOLVIDO
-        reserva.save()
+        reserva.data_devolucao = timezone.now()
+
+        reserva.save(
+            update_fields=[
+                "status",
+                "data_devolucao",
+            ]
+        )
 
         return Response(
-            {
-                "status": "Reserva devolvida com sucesso"
-            },
+            {"status": "Devolução registrada com sucesso."},
             status=status.HTTP_200_OK,
         )
 
     @extend_schema(
         request=None,
-        responses={
-            200: None,
-            400: None,
-            403: None,
-            404: None,
-        },
-        description="Cancela uma reserva do próprio usuário.",
+        responses={200: None, 400: None, 403: None, 404: None},
+        description="Cancela uma reserva e devolve os exemplares ao estoque.",
         summary="Cancelar reserva",
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def cancelar(self, request, pk=None):
-
         try:
             reserva = Reserva.objects.get(pk=pk)
         except Reserva.DoesNotExist:
             return Response(
-                {
-                    "detail": "Reserva não encontrada."
-                },
+                {"detail": "Reserva não encontrada."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Administrador pode cancelar qualquer reserva
-        if self.is_admin():
-            pass
-
-        # Usuário comum só pode cancelar a própria reserva
-        elif reserva.usuario_id != request.user.id:
+        if not self.is_admin() and reserva.usuario_id != request.user.id:
             return Response(
                 {
-                    "detail": "Você não tem permissão para cancelar esta reserva."
+                    "detail": (
+                        "Você não tem permissão para cancelar esta reserva."
+                    )
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Só permite cancelar reservas reservadas
         if reserva.status != Reserva.StatusReserva.RESERVADO:
             return Response(
                 {
-                    "detail": "Apenas reservas reservadas podem ser canceladas."
+                    "detail": (
+                        "Apenas reservas reservadas podem ser canceladas."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        for item in reserva.itens.select_related("livro").all():
+            livro = item.livro
+            livro.quantidade += 1
+            livro.status = livro.Status.DISPONIVEL
+            livro.save(update_fields=["quantidade", "status"])
+
         reserva.status = Reserva.StatusReserva.CANCELADO
-        reserva.save()
+        reserva.save(update_fields=["status"])
 
         return Response(
-            {
-                "status": "Reserva cancelada com sucesso."
-            },
+            {"status": "Reserva cancelada com sucesso."},
             status=status.HTTP_200_OK,
         )
 
