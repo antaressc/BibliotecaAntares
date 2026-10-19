@@ -1,7 +1,3 @@
-"""
-Django admin customization.
-"""
-
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -101,7 +97,6 @@ class ReservaAdmin(ModelAdmin):
     )
 
     ordering = ('usuario', 'status', 'data_criacao')
-
     search_fields = ('usuario__email', 'status')
 
     list_filter = (
@@ -113,7 +108,6 @@ class ReservaAdmin(ModelAdmin):
     )
 
     list_per_page = 10
-
     inlines = [ItensReservaInline]
 
     readonly_fields = (

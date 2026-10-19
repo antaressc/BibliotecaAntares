@@ -13,7 +13,6 @@ class ItensReservaSerializer(ModelSerializer):
         model = ItensReserva
         fields = ('livro',)
 
-
 class ReservaSerializer(ModelSerializer):
     usuario = CharField(source='usuario.name', read_only=True)
     status = CharField(source='get_status_display', read_only=True)
@@ -118,7 +117,6 @@ class ItensReservaListSerializer(ModelSerializer):
     class Meta:
         model = ItensReserva
         fields = ('livro',)
-
 
 class ReservaListSerializer(ModelSerializer):
     usuario = CharField(source='usuario.name', read_only=True)

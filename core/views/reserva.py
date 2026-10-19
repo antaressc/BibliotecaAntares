@@ -15,7 +15,6 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
-from django.utils import timezone
 
 class ReservaViewSet(ModelViewSet):
     queryset = Reserva.objects.all()
@@ -109,8 +108,6 @@ class ReservaViewSet(ModelViewSet):
                 {"detail": "Você não tem permissão para acessar este relatório."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-
-        agora = timezone.now()
 
         inicio_mes = agora.replace(
             day=1,

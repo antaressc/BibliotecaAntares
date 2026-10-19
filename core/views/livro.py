@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from core.models import Livro, Reserva
 from core.serializers import LivroSerializer
 from core.serializers.livro import (
