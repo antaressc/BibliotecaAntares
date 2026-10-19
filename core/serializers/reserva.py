@@ -8,6 +8,8 @@ from rest_framework.serializers import (
 from core.models import Reserva, ItensReserva, Livro
 from django.db import transaction
 
+LIMITE_LIVROS_POR_USUARIO = 3
+
 class ItensReservaSerializer(ModelSerializer):
     class Meta:
         model = ItensReserva
@@ -48,37 +50,38 @@ class ReservaCreateUpdateSerializer(ModelSerializer):
     def create(self, validated_data):
         itens = validated_data.pop('itens', [])
         usuario = validated_data['usuario']
-    
-        reserva_ativa = Reserva.objects.filter(
-            usuario=usuario,
-            status__in=[
+
+        livros_em_aberto = ItensReserva.objects.filter(
+            reserva__usuario=usuario,
+            reserva__status__in=[
                 Reserva.StatusReserva.RESERVADO,
                 Reserva.StatusReserva.RETIRADO,
-            ]
-        ).exists()
-    
-        if reserva_ativa:
+            ],
+        ).count()
+
+        if livros_em_aberto + len(itens) > LIMITE_LIVROS_POR_USUARIO:
             raise ValidationError(
-                'O usuário já possui uma reserva ativa. '
-                'É necessário devolver o livro antes de fazer uma nova reserva.'
+                f'O limite é de {LIMITE_LIVROS_POR_USUARIO} livros por usuário '
+                f'e você já possui {livros_em_aberto} reservado(s) ou retirado(s). '
+                'É necessário devolver algum livro antes de fazer uma nova reserva.'
             )
-    
+
         for item in itens:
             livro = item['livro']
-    
+
             if livro.quantidade <= 0:
                 raise ValidationError(
                     f'O livro "{livro.titulo}" não está disponível para reserva.'
                 )
-    
+
         reserva = Reserva.objects.create(**validated_data)
-    
+
         for item in itens:
             ItensReserva.objects.create(
                 reserva=reserva,
                 livro=item['livro']
             )
-    
+
         return reserva
 
     @transaction.atomic
