@@ -26,10 +26,11 @@ class ReservaSerializer(ModelSerializer):
             'usuario',
             'status',
             'data_criacao',
-            'data_atualizacao',
+            'data_retirada',
+            'data_devolucao_prevista',
+            'data_devolucao',
             'itens',
         )
-
 
 class ItensReservaCreateUpdateSerializer(ModelSerializer):
     class Meta:
@@ -85,14 +86,29 @@ class ReservaCreateUpdateSerializer(ModelSerializer):
     def update(self, reserva, validated_data):
         itens = validated_data.pop('itens', [])
 
-        if itens:
-            reserva.itens.all().delete()
+        validated_data.pop('usuario', None)
 
-            for item in itens:
-                ItensReserva.objects.create(
-                    reserva=reserva,
-                    **item
+        if itens:
+            if reserva.status in [
+                Reserva.StatusReserva.DEVOLVIDO,
+                Reserva.StatusReserva.CANCELADO,
+            ]:
+                raise ValidationError(
+                    'Não é possível alterar os itens de uma reserva '
+                    'devolvida ou cancelada.'
                 )
+
+            for item_antigo in reserva.itens.all():
+                item_antigo.delete()
+
+            try:
+                for item in itens:
+                    ItensReserva.objects.create(
+                        reserva=reserva,
+                        **item
+                    )
+            except ValueError as erro:
+                raise ValidationError(str(erro))
 
         return super().update(reserva, validated_data)
 

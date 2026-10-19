@@ -43,6 +43,13 @@ class Reserva(models.Model):
         verbose_name='Data de devolução'
     )
 
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        for item in self.itens.all():
+            item.delete()
+
+        return super().delete(*args, **kwargs)
+
 
 
 class ItensReserva(models.Model):

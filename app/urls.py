@@ -1,4 +1,3 @@
-from click.utils import R
 from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
@@ -10,7 +9,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from rest_framework.routers import DefaultRouter
-from core.models.editora import Editora
 from core.views import (
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
