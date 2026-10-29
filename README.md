@@ -68,9 +68,10 @@ Dessa forma, é possível acompanhar todo o ciclo do livro, desde a reserva até
 ## 🛠️ Tecnologias
 
 * **Python**
+* **Django**
+* **Django REST Framework**
 * **PDM**
-* **Banco de dados relacional**
-* **HTML5**
+* **SQLite**
 
 ## 🚦 Status do projeto
 
