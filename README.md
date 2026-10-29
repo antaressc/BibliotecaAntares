@@ -2,7 +2,7 @@
 
 Sistema web para gerenciamento da biblioteca corporativa da **Antares**, desenvolvido para facilitar o controle do acervo, usuários, reservas e empréstimos de livros.
 
-##Desenvolvedor:
+## 👨‍💻 Desenvolvedor
 **[@luisc5martins](https://github.com/luisc5martins)**
 
 ## 🎯 Objetivo
