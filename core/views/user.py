@@ -14,6 +14,7 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
     @extend_schema(
         summary="Dados do usuário autenticado",
