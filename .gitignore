@@ -117,6 +117,7 @@ ipython_config.py
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
 .pdm-build/
+.pdm-python
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -178,5 +179,7 @@ poetry.toml
 # Editor
 .vscode/
 .idea/
+
+media/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
