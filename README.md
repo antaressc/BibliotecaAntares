@@ -69,11 +69,11 @@ Dessa forma, é possível acompanhar todo o ciclo do livro, desde a reserva até
 * **Banco de dados relacional**
 * **HTML5**
 
-## 🚧 Status do projeto
+## 🚦 Status do projeto
 
-> 🟡 **Em desenvolvimento**
+🟢 **Em produção**
 
-O sistema está sendo desenvolvido de forma incremental, começando pelas funcionalidades essenciais de usuários, livros, reservas e empréstimos.
+O sistema Biblioteca Antares está implantado e em utilização na empresa. O projeto encontra-se em manutenção e evolução contínuas, com correções, melhorias e implementação de novas funcionalidades conforme as necessidades identificadas.
 
 ## 📌 Regras importantes
 
