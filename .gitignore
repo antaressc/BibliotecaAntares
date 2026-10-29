@@ -6,6 +6,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.coverage
+staticfiles/
 
 # C extensions
 *.so
@@ -62,8 +65,9 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-# db.sqlite3
+db.sqlite3
 db.sqlite3-journal
+dump.json
 
 # Flask stuff:
 instance/
@@ -112,6 +116,7 @@ ipython_config.py
 #   in version control.
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
+.pdm-build/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -169,5 +174,9 @@ poetry.toml
 
 # Ruff
 .ruff_cache/
+
+# Editor
+.vscode/
+.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
