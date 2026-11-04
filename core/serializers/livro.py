@@ -2,9 +2,10 @@ from rest_framework.serializers import (
     ModelSerializer,
     SlugRelatedField,
     IntegerField,
+    SerializerMethodField,
 )
 
-from core.models import Livro
+from core.models import Livro, Reserva
 from uploader.models import Image
 from uploader.serializers import ImageSerializer
 
@@ -39,12 +40,15 @@ class LivroRetrieveSerializer(ModelSerializer):
         depth = 1
 
 
+
 class LivroListSerializer(ModelSerializer):
 
     capa = ImageSerializer(
         required=False,
         read_only=True
     )
+
+    data_devolucao_prevista = SerializerMethodField()
 
     class Meta:
         model = Livro
@@ -55,7 +59,25 @@ class LivroListSerializer(ModelSerializer):
             'capa',
             'status',
             'sinopse',
+            'data_devolucao_prevista',
         )
+
+    def get_data_devolucao_prevista(self, obj):
+        reserva = Reserva.objects.filter(
+            itens__livro=obj,
+            status__in=[
+                Reserva.StatusReserva.RETIRADO,
+            ],
+            data_devolucao_prevista__isnull=False,
+        ).order_by(
+            'data_devolucao_prevista'
+        ).first()
+
+        if reserva:
+            return reserva.data_devolucao_prevista
+
+        return None
+
 
 
 class LivroMaisReservadoSerializer(ModelSerializer):
