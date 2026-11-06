@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo livro - Biblioteca Antares</title>
+</head>
+
+<body style="
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f8;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #333333;
+">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color: #f4f6f8; padding: 30px 10px;">
+
+    <tr>
+        <td align="center">
+
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="
+                       max-width: 600px;
+                       width: 100%;
+                       background-color: #ffffff;
+                       border-radius: 8px;
+                       overflow: hidden;
+                   ">
+
+                <!-- Cabeçalho -->
+                <tr>
+                    <td style="
+                        background-color: #0d47a1;
+                        padding: 25px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            color: #ffffff;
+                            font-size: 24px;
+                            font-weight: bold;
+                        ">
+                            📚 Biblioteca Antares
+                        </div>
+
+                        <div style="
+                            color: #dbe8ff;
+                            font-size: 15px;
+                            margin-top: 8px;
+                        ">
+                            Novo livro cadastrado
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Conteúdo -->
+                <tr>
+                    <td style="padding: 30px;">
+
+                        <p style="
+                            margin-top: 0;
+                            font-size: 16px;
+                            line-height: 1.6;
+                        ">
+                            Olá, <strong>{{ nome }}</strong>!
+                        </p>
+
+                        <p style="
+                            font-size: 15px;
+                            line-height: 1.6;
+                        ">
+                            Um novo livro foi cadastrado na
+                            <strong>Biblioteca Antares</strong>.
+                        </p>
+
+                        <!-- Informações do livro -->
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               border="0"
+                               style="
+                                   margin: 25px 0;
+                                   background-color: #f5f7fa;
+                                   border-left: 4px solid #0d47a1;
+                               ">
+
+                            <tr>
+                                <td style="padding: 20px;">
+
+                                    <div style="
+                                        font-size: 20px;
+                                        font-weight: bold;
+                                        color: #0d47a1;
+                                        margin-bottom: 18px;
+                                    ">
+                                        {{ livro.titulo }}
+                                    </div>
+
+                                    {% if capa_url %}
+                                    <div style="
+                                        text-align: center;
+                                        margin: 20px 0;
+                                    ">
+                                        <img src="cid:capa-livro-{{ livro.id }}"
+                                             alt="Capa de {{ livro.titulo }}"
+                                             style="
+                                                 max-width: 220px;
+                                                 width: 100%;
+                                                 height: auto;
+                                                 border-radius: 6px;
+                                             ">
+                                    </div>
+                                    {% endif %}
+
+                                    <p style="
+                                        margin: 8px 0;
+                                        font-size: 14px;
+                                    ">
+                                        <strong>ISBN:</strong>
+                                        {{ livro.isbn|default:"Não informado" }}
+                                    </p>
+
+                                    <p style="
+                                        margin: 8px 0;
+                                        font-size: 14px;
+                                    ">
+                                        <strong>Formato:</strong>
+                                        {{ livro.formato|default:"Não informado" }}
+                                    </p>
+
+                                    <p style="
+                                        margin: 8px 0;
+                                        font-size: 14px;
+                                    ">
+                                        <strong>Editora:</strong>
+                                        {{ livro.editora|default:"Não informado" }}
+                                    </p>
+
+                                    <p style="
+                                        margin: 8px 0;
+                                        font-size: 14px;
+                                    ">
+                                        <strong>Categoria:</strong>
+                                        {{ livro.categoria|default:"Não informado" }}
+                                    </p>
+
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <!-- Sinopse -->
+                        <p style="
+                            font-size: 15px;
+                            font-weight: bold;
+                            margin-bottom: 8px;
+                        ">
+                            Sinopse
+                        </p>
+
+                        <p style="
+                            font-size: 14px;
+                            line-height: 1.7;
+                            color: #555555;
+                            margin-top: 0;
+                        ">
+                            {{ livro.sinopse|default:"Sinopse não informada."|linebreaksbr }}
+                        </p>
+
+                        <!-- Botão -->
+                        <div style="
+                            text-align: center;
+                            margin: 30px 0 10px 0;
+                        ">
+                            <a href="{{ biblioteca_url }}"
+                               style="
+                                   display: inline-block;
+                                   background-color: #0d47a1;
+                                   color: #ffffff;
+                                   text-decoration: none;
+                                   font-size: 15px;
+                                   font-weight: bold;
+                                   padding: 13px 24px;
+                                   border-radius: 5px;
+                               ">
+                                Acessar Biblioteca Antares
+                            </a>
+                        </div>
+
+                    </td>
+                </tr>
+
+                <!-- Rodapé -->
+                <tr>
+                    <td style="
+                        background-color: #f0f2f5;
+                        padding: 18px;
+                        text-align: center;
+                    ">
+
+                        <p style="
+                            margin: 0;
+                            font-size: 12px;
+                            color: #777777;
+                            line-height: 1.5;
+                        ">
+                            Biblioteca Antares
+                            <br>
+                            Este e-mail foi enviado automaticamente.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>
