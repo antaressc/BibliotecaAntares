@@ -5,12 +5,12 @@ from rest_framework.serializers import (
     IntegerField,
     SerializerMethodField,
 )
-
+from django.db import transaction
+import threading
 from core.models import Livro, Reserva
 from uploader.models import Image
 from uploader.serializers import ImageSerializer
-
-
+from core.services import enviar_email_livro_novo
 
 class LivroSerializer(ModelSerializer):
 
@@ -133,6 +133,41 @@ class LivroSerializer(ModelSerializer):
                     })
 
         return attrs
+
+    def create(self, validated_data):
+        livro = super().create(validated_data)
+    
+        print(
+            f"DEBUG: create() do Livro executado - ID {livro.id}"
+        )
+    
+        def enviar_notificacao():
+            print(
+                f"DEBUG: iniciando envio do livro ID {livro.id}"
+            )
+    
+            resultado = enviar_email_livro_novo(livro.id)
+    
+            print(
+                f"DEBUG: resultado do envio: {resultado}"
+            )
+    
+        def iniciar_envio():
+            print(
+                f"DEBUG: iniciando thread de envio do livro ID {livro.id}"
+            )
+    
+            thread = threading.Thread(
+                target=enviar_notificacao,
+                daemon=True,
+            )
+            thread.start()
+    
+        print("DEBUG: registrando callback on_commit")
+    
+        transaction.on_commit(iniciar_envio)
+    
+        return livro
 
 class LivroRetrieveSerializer(ModelSerializer):
 
