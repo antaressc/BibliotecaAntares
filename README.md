@@ -89,12 +89,6 @@ O sistema Biblioteca Antares está implantado e em utilização na empresa. O pr
 * O histórico de reservas e empréstimos deve ser preservado.
 * A data e hora das reservas, retiradas e devoluções são registradas no sistema.
 
-## 👨‍🏫 Agradecimentos
-
-Agradeço aos professores **[@marrcandre](https://github.com/marrcandre)** e **[@eduardo-da-silva](https://github.com/eduardo-da-silva)**, que fizeram parte da minha formação e contribuíram para minha trajetória na área de tecnologia.
-
-O projeto utiliza como base o **template disponibilizado por [@marrcandre](https://github.com/marrcandre)** e teve como material de apoio os **vídeos e tutoriais disponibilizados por [@eduardo-da-silva](https://github.com/eduardo-da-silva)**.
-
 ---
 
 **Biblioteca Antares**
